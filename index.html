@@ -70,17 +70,15 @@ a.button{display:inline-block;text-decoration:none}
 </section>
 </main>
 
-<div id="modal" class="modal hidden">
-  <div>
-    <h2>Ask the guide</h2>
-    <textarea id="question" placeholder="e.g. Why is Plaça Catalunya important?"></textarea>
-    <div class="row" style="margin-top:10px">
-      <button id="answerBtn" class="primary" type="button">Answer</button>
-      <button id="closeBtn" class="secondary" type="button">Close</button>
-    </div>
-    <p id="answer" style="margin-top:14px"></p>
+<section id="questionPanel" class="card hidden">
+  <h2>Ask the guide</h2>
+  <textarea id="question" placeholder="e.g. Why is Plaça Catalunya important?"></textarea>
+  <div class="row" style="margin-top:10px">
+    <button id="answerBtn" class="primary" type="button">Answer</button>
+    <button id="cancelQuestionBtn" class="secondary" type="button">Cancel</button>
   </div>
-</div>
+  <p id="answer" style="margin-top:14px"></p>
+</section>
 
 <script>
 const stops=[
@@ -168,7 +166,11 @@ function arrive(){
   const s=stops[current];
   showGuide(s);
   current++;
-  render();
+  document.getElementById("answerBtn").addEventListener("click", answerQuestion);
+document.getElementById("cancelQuestionBtn").addEventListener("click", function(){
+  $("questionPanel").classList.add("hidden");
+});
+render();
   setTimeout(()=>lastArrived=-1,10000);
 }
 function handlePosition(pos){
@@ -215,25 +217,13 @@ function more(){
   speak(s.more);
 }
 function askQuestion(){
-  $("question").value="";
+  const panel=$("questionPanel");
+  panel.classList.remove("hidden");
   $("answer").textContent="";
-  $("modal").classList.remove("hidden"); document.body.style.overflow="hidden";
+  $("question").value="";
   setTimeout(()=>$("question").focus(),50);
+  panel.scrollIntoView({behavior:"smooth",block:"center"});
 }
-function closeModal(){const m=$("modal"); m.classList.add("hidden"); document.body.style.overflow="";}
-document.getElementById("closeBtn").addEventListener("click", function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  closeModal();
-});
-document.getElementById("answerBtn").addEventListener("click", function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  answerQuestion();
-});
-document.getElementById("modal").addEventListener("click", function(e){
-  if(e.target === this) closeModal();
-});
 
 function answerQuestion(){
   const q=$("question").value.trim();
@@ -246,10 +236,14 @@ function answerQuestion(){
   else if(lower.includes("important")||lower.includes("why"))
     answer=s.more;
   else
-    answer=`You're currently exploring ${s.name}. ${s.more} If you ask about history, architecture, food or what to look for next, I can give you a focused explanation.`;
+    answer=`You're currently exploring ${s.name}. ${s.more} Ask about history, architecture, food or what to look for next.`;
   $("answer").textContent=answer;
   speak(answer);
 }
+document.getElementById("answerBtn").addEventListener("click", answerQuestion);
+document.getElementById("cancelQuestionBtn").addEventListener("click", function(){
+  $("questionPanel").classList.add("hidden");
+});
 render();
 </script>
 </body>

@@ -70,13 +70,13 @@ a.button{display:inline-block;text-decoration:none}
 </section>
 </main>
 
-<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
+<div id="modal" class="modal hidden">
   <div>
     <h2>Ask the guide</h2>
     <textarea id="question" placeholder="e.g. Why is Plaça Catalunya important?"></textarea>
     <div class="row" style="margin-top:10px">
-      <button class="primary" onclick="answerQuestion()">Answer</button>
-      <button class="secondary" onclick="closeModal()">Close</button>
+      <button id="answerBtn" class="primary" type="button">Answer</button>
+      <button id="closeBtn" class="secondary" type="button">Close</button>
     </div>
     <p id="answer" style="margin-top:14px"></p>
   </div>
@@ -217,10 +217,24 @@ function more(){
 function askQuestion(){
   $("question").value="";
   $("answer").textContent="";
-  $("modal").classList.remove("hidden");
-  $("question").focus();
+  $("modal").classList.remove("hidden"); document.body.style.overflow="hidden";
+  setTimeout(()=>$("question").focus(),50);
 }
-function closeModal(){$("modal").classList.add("hidden")}
+function closeModal(){const m=$("modal"); m.classList.add("hidden"); document.body.style.overflow="";}
+document.getElementById("closeBtn").addEventListener("click", function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  closeModal();
+});
+document.getElementById("answerBtn").addEventListener("click", function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  answerQuestion();
+});
+document.getElementById("modal").addEventListener("click", function(e){
+  if(e.target === this) closeModal();
+});
+
 function answerQuestion(){
   const q=$("question").value.trim();
   if(!q)return;

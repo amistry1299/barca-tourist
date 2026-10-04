@@ -1,176 +1,241 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <title>Barcelona Live Walk</title>
-  <style>
-    :root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f5f7fb}
-    *{box-sizing:border-box} body{margin:0} button{font:inherit;cursor:pointer}
-    .app{max-width:720px;margin:auto;min-height:100vh;background:#fff}
-    header{padding:20px;background:#111827;color:#fff;position:sticky;top:0;z-index:5}
-    h1{font-size:24px;margin:0 0 5px}.sub{opacity:.75;font-size:14px}
-    main{padding:16px}.card{border:1px solid #e5e7eb;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 3px 14px #0000000b}
-    .next{background:#f3f4f6}.label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700}
-    .stop{font-size:22px;font-weight:800;margin:5px 0}.meta{color:#6b7280;font-size:14px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    button{border:0;border-radius:12px;padding:12px 15px;font-weight:700}
-    .primary{background:#111827;color:white}.secondary{background:#e5e7eb;color:#111827}.success{background:#dcfce7;color:#166534}
-    .danger{background:#fee2e2;color:#991b1b}
-    #status{font-size:14px;line-height:1.45}.progress{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:10px}
-    #bar{height:100%;width:0;background:#111827;transition:width .3s}
-    ol{padding-left:24px;margin:8px 0}.stop-item{padding:9px 0}.active{font-weight:800}.done{text-decoration:line-through;color:#9ca3af}
-    #guide{white-space:pre-wrap;line-height:1.55}.hidden{display:none}
-    .gps{font-variant-numeric:tabular-nums}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Barcelona Live Walk</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f3f4f6}
+*{box-sizing:border-box}body{margin:0}.app{max-width:760px;margin:auto;padding:16px}
+header{background:#111827;color:white;border-radius:20px;padding:20px;margin-bottom:14px}
+h1,h2,p{margin-top:0}.sub{opacity:.72;font-size:14px}
+.card{background:white;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 3px 16px #00000012}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{border:0;border-radius:12px;padding:12px 15px;font-weight:750;cursor:pointer}
+.primary{background:#111827;color:white}.secondary{background:#e5e7eb;color:#111827}
+.success{background:#dcfce7;color:#166534}.danger{background:#fee2e2;color:#991b1b}
+.big{font-size:27px;font-weight:850;margin:5px 0 10px}
+.label{font-size:12px;font-weight:800;letter-spacing:.08em;color:#6b7280}
+.status{padding:12px;border-radius:12px;background:#f3f4f6;margin-top:10px}
+.stop{padding:12px 0;border-bottom:1px solid #eee}.stop:last-child{border-bottom:0}
+.done{color:#16803c}.next{font-weight:800}
+.small{font-size:13px;color:#6b7280}
+.hidden{display:none}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:flex-end;justify-content:center;padding:12px}
+.modal>div{background:white;border-radius:20px;padding:20px;max-width:650px;width:100%}
+textarea{width:100%;min-height:90px;border:1px solid #d1d5db;border-radius:12px;padding:12px;font:inherit}
+a.button{display:inline-block;text-decoration:none}
+</style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1>Barcelona Live Walk</h1>
-    <div class="sub">GPS-guided walking tour · Sunday 4 October</div>
-  </header>
+<main class="app">
+<header>
+  <h1>Barcelona Live Walk</h1>
+  <div class="sub">GPS-guided walking tour · Sunday 4 October</div>
+</header>
 
-  <main>
-    <section class="card next">
-      <div class="label">Next stop</div>
-      <div id="nextStop" class="stop">Plaça Catalunya</div>
-      <div id="distance" class="meta">Start GPS to calculate distance</div>
-      <div class="row">
-        <button id="start" class="primary">Start GPS</button>
-        <button id="speak" class="secondary">▶ Play guide</button>
-        <button id="maps" class="secondary">Open walking route</button>
-      </div>
-    </section>
+<section class="card">
+  <div class="label">NEXT STOP</div>
+  <div id="next" class="big">Plaça Catalunya</div>
+  <div id="distance" class="small">Location is off</div>
+  <div class="row" style="margin-top:12px">
+    <button id="gpsBtn" class="primary" onclick="startGPS()">📍 Start GPS</button>
+    <button class="secondary" onclick="speakCurrent()">▶ Play guide</button>
+    <a id="routeBtn" class="button secondary" href="#" target="_blank" rel="noopener">🧭 Walking route</a>
+  </div>
+  <div id="status" class="status">GPS is off. Start GPS to calculate your distance and trigger guides.</div>
+</section>
 
-    <section class="card">
-      <div class="label">Live status</div>
-      <div id="status">GPS is off. Tap Start GPS and allow location access.</div>
-      <div class="progress"><div id="bar"></div></div>
-      <div class="meta gps" id="coords">No location yet</div>
-    </section>
+<section class="card">
+  <div class="label">GUIDE</div>
+  <h2 id="guideTitle">Plaça Catalunya</h2>
+  <p id="guideText">Start GPS when you are ready. When you arrive within about 85 metres of a stop, the guide will automatically open and can be spoken aloud.</p>
+  <div class="row">
+    <button class="secondary" onclick="more()">Tell me more</button>
+    <button class="secondary" onclick="askQuestion()">Ask a question</button>
+  </div>
+</section>
 
-    <section class="card">
-      <div class="label">Guide</div>
-      <div id="guide">When you arrive at a stop, the guide will appear here automatically.</div>
-      <div class="row">
-        <button id="more" class="secondary">Tell me more</button>
-        <button id="question" class="secondary">Ask a question</button>
-      </div>
-    </section>
+<section class="card">
+  <div class="label">TODAY'S ITINERARY</div>
+  <div id="list"></div>
+</section>
 
-    <section class="card">
-      <div class="label">Today's itinerary</div>
-      <ol id="itinerary"></ol>
-    </section>
+<section class="card">
+  <b>After the walk</b>
+  <p class="small">Around 17:00 → Acta Voraport · relax / F1</p>
+  <p class="small">19:00–20:00 → fresh seafood dinner</p>
+</section>
+</main>
 
-    <section class="card">
-      <div class="label">Add a stop</div>
-      <div class="row">
-        <button class="secondary add" data-name="TKO Tacos" data-lat="41.3808" data-lng="2.1722">🌮 TKO Tacos</button>
-        <button class="secondary add" data-name="Barceloneta Beach" data-lat="41.3784" data-lng="2.1925">🌊 Barceloneta Beach</button>
-      </div>
-    </section>
-  </main>
+<div id="modal" class="modal hidden" onclick="if(event.target===this)closeModal()">
+  <div>
+    <h2>Ask the guide</h2>
+    <textarea id="question" placeholder="e.g. Why is Plaça Catalunya important?"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="primary" onclick="answerQuestion()">Answer</button>
+      <button class="secondary" onclick="closeModal()">Close</button>
+    </div>
+    <p id="answer" style="margin-top:14px"></p>
+  </div>
 </div>
 
 <script>
-const stops = [
-  {name:"Plaça Catalunya",lat:41.3870,lng:2.1701,
-   guide:"You’re at Plaça Catalunya, the huge central square where Barcelona’s Eixample meets the old city. It has long been one of the city’s main meeting points and is the natural gateway between the Gothic Quarter, La Rambla and Passeig de Gràcia."},
-  {name:"Canaletes",lat:41.3859,lng:2.1708,
-   guide:"You’re at Canaletes. The famous fountain is associated with a Barcelona saying: if you drink from it, you’ll return to the city. It is also strongly associated with Barça supporters celebrating here."},
-  {name:"La Rambla",lat:41.3807,lng:2.1732,
-   guide:"You’re on La Rambla, Barcelona’s best-known boulevard. The tree-lined promenade runs downhill from Plaça Catalunya toward the port and passes markets, theatres, historic buildings and street life."},
-  {name:"Casa Bruno Cuadros",lat:41.3800,lng:2.1739,
-   guide:"Look up at Casa Bruno Cuadros. Its ornate façade mixes several decorative influences, with the famous dragon and umbrella imagery making it one of La Rambla’s most recognisable buildings."},
-  {name:"Liceu",lat:41.3807,lng:2.1736,
-   guide:"You’re beside Gran Teatre del Liceu, Barcelona’s historic opera house. It opened in 1847 and has been one of the city’s major cultural institutions for generations."},
-  {name:"Miró Mosaic",lat:41.3808,lng:2.1736,
-   guide:"Look down for Joan Miró’s colourful Pla de la Boqueria mosaic. Miró created it as part of a series of public artworks that connected his work with the city and its streets."},
-  {name:"Plaça Reial",lat:41.3785,lng:2.1755,
-   guide:"You’re in Plaça Reial, an elegant arcaded square just off La Rambla. Look for the distinctive street lamps designed by a young Antoni Gaudí."},
-  {name:"Columbus Monument",lat:41.3758,lng:2.1773,
-   guide:"You’re at the Columbus Monument at the bottom of La Rambla. The monument stands at the waterfront and was unveiled for Barcelona’s 1888 Universal Exposition. Its symbolism and historical interpretation are more complicated than the simple heroic story often presented."},
-  {name:"Port Vell",lat:41.3750,lng:2.1840,
-   guide:"You’re at Port Vell, Barcelona’s old harbour area. The waterfront was substantially transformed for the 1992 Olympics, turning what had been a more industrial harbour edge into a major public space."},
-  {name:"Barceloneta",lat:41.3797,lng:2.1899,
-   guide:"You’re entering Barceloneta, the historic maritime neighbourhood. Its identity is tied to fishing, the port and the sea, while the beach and waterfront now make it one of Barcelona’s busiest leisure areas."}
+const stops=[
+ {name:"Plaça Catalunya",lat:41.3870,lon:2.1701,
+  guide:"You’re at Plaça Catalunya, Barcelona’s huge central square where the Eixample meets the old city. It is one of the city’s main meeting points and the natural gateway between the Gothic Quarter, La Rambla and Passeig de Gràcia.",
+  more:"Plaça Catalunya sits at the junction of the medieval centre and the planned Eixample. From here, La Rambla heads south-west toward the sea, while Passeig de Gràcia heads north-west toward the modernist heart of the city."},
+ {name:"Canaletes",lat:41.3856,lon:2.1706,
+  guide:"Look for the Font de Canaletes on the upper part of La Rambla. Local tradition says that drinking from it means you will return to Barcelona.",
+  more:"The fountain is also famous as a gathering point for football celebrations. It is a tiny landmark, so look carefully as you walk down La Rambla."},
+ {name:"La Rambla",lat:41.3817,lon:2.1735,
+  guide:"You’re on La Rambla, Barcelona’s famous tree-lined boulevard running from Plaça Catalunya toward Port Vell. Walk slowly and look up at the façades, balconies, flower stalls and street life.",
+  more:"La Rambla is not just one historic street but a sequence of sections. Your route follows it downhill toward the sea, passing the Liceu and Plaça Reial before reaching Columbus Monument."},
+ {name:"Casa Bruno Cuadros",lat:41.3815,lon:2.1732,
+  guide:"Look up for Casa Bruno Cuadros, recognisable for its dragon, umbrellas and ornate decoration. It is one of the more unusual façades on La Rambla.",
+  more:"The building reflects Barcelona’s eclectic late-19th-century architectural style, when commercial buildings often used elaborate façades to attract attention."},
+ {name:"Gran Teatre del Liceu",lat:41.3809,lon:2.1736,
+  guide:"The Gran Teatre del Liceu is Barcelona’s grand opera house. It opened in 1847 and became one of the city’s most important cultural institutions.",
+  more:"The theatre has survived fires and reconstruction and remains one of the defining buildings on La Rambla. If you have time, look across toward the historic Café de l’Òpera."},
+ {name:"Miró Mosaic",lat:41.3796,lon:2.1751,
+  guide:"Look down. Joan Miró’s colourful circular mosaic is embedded directly into the pavement on La Rambla.",
+  more:"The mosaic was created as a public artwork and is easy to miss because it sits under your feet. This is one of those Barcelona details worth stopping for rather than simply walking past."},
+ {name:"Plaça Reial",lat:41.3802,lon:2.1750,
+  guide:"Plaça Reial is one of the most atmospheric squares beside La Rambla, with arcades, palm trees, cafés and distinctive lamps.",
+  more:"The square is a good place for a short people-watching break. Look around the arcades before returning to La Rambla and continuing toward the harbour."},
+ {name:"TKO Tacos",lat:41.3788,lon:2.1756,
+  guide:"Optional food stop: TKO Tacos. Grab something small if you are hungry, then continue toward the harbour.",
+  more:"Keep this as an optional stop rather than a required sightseeing stop so it does not break the flow of the walk."},
+ {name:"Columbus Monument",lat:41.3758,lon:2.1774,
+  guide:"The Columbus Monument marks the seaward end of La Rambla beside Port Vell. From here, the character of the walk changes from city boulevard to waterfront.",
+  more:"The monument was unveiled for the 1888 Barcelona Universal Exposition. It stands at the meeting point of La Rambla, the harbour and the waterfront."},
+ {name:"Port Vell",lat:41.3750,lon:2.1790,
+  guide:"You’re at Port Vell, Barcelona’s old harbour. The waterfront was heavily transformed around the 1992 Olympics into a major public leisure area.",
+  more:"This is a good point to slow down. Follow the waterfront, look across the marina and enjoy the change from the dense old city to open Mediterranean space."},
+ {name:"Barceloneta",lat:41.3809,lon:2.1890,
+  guide:"Barceloneta grew as a maritime and fishing neighbourhood and now meets the Mediterranean beach. Walk the waterfront before heading back toward Poblenou.",
+  more:"The neighbourhood’s narrow streets reflect its maritime origins. Your sightseeing route finishes here; from the beach you can make your way back toward Poblenou."}
 ];
 
-let current=0, watchId=null, lastPosition=null, arrived=false;
+let current=0, watchId=null, gpsState="off", lastArrived=-1;
 
 const $=id=>document.getElementById(id);
+
 function render(){
-  $("nextStop").textContent=stops[current]?.name || "Finished";
-  $("itinerary").innerHTML=stops.map((s,i)=>
-    `<li class="stop-item ${i<current?'done':''} ${i===current?'active':''}">${s.name}</li>`).join("");
-  $("bar").style.width=(current/stops.length*100)+"%";
+  $("next").textContent=stops[current]?.name || "Route complete";
+  $("list").innerHTML=stops.map((s,i)=>`
+    <div class="stop ${i<current?'done':''}">
+      <span class="next">${i<current?'✓ ':''}${s.name}</span>
+      <div class="small">${i===current?'NEXT STOP':i<current?'Completed':'Stop '+(i+1)}</div>
+    </div>`).join("");
+  updateRoute();
 }
-function haversine(a,b){
+function updateRoute(){
+  const s=stops[current];
+  if(!s){$("routeBtn").classList.add("hidden");return}
+  $("routeBtn").href="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(s.name+", Barcelona")+"&travelmode=walking";
+}
+function distance(a,b){
   const R=6371000, p=Math.PI/180;
-  const dLat=(b.lat-a.lat)*p,dLng=(b.lng-a.lng)*p;
-  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*p)*Math.cos(b.lat*p)*Math.sin(dLng/2)**2;
-  return 2*R*Math.asin(Math.sqrt(x));
+  const dLat=(b.lat-a.lat)*p, dLon=(b.lon-a.lon)*p;
+  const q=Math.sin(dLat/2)**2+Math.cos(a.lat*p)*Math.cos(b.lat*p)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(q));
 }
-function formatDistance(m){return m<1000?Math.round(m)+" m":(m/1000).toFixed(1)+" km"}
-function guideFor(stop, deeper=false){
-  if(!stop)return;
-  let text=stop.guide;
-  if(deeper) text += "\\n\\nWant to explore it further? Ask a question aloud or use the Ask a question button. The guide can be extended with more historical, architectural, food or local context.";
-  $("guide").textContent=text;
+function setStatus(kind,text){
+  $("status").textContent=text;
+  $("status").className="status "+(kind==="ok"?"success":kind==="error"?"danger":"");
+}
+function speak(text){
+  if(!("speechSynthesis" in window)){setStatus("error","Speech is not supported by this browser.");return}
   speechSynthesis.cancel();
-  speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-GB"; u.rate=.94;
+  speechSynthesis.speak(u);
 }
-function onPosition(pos){
-  lastPosition={lat:pos.coords.latitude,lng:pos.coords.longitude};
-  $("coords").textContent=`${lastPosition.lat.toFixed(5)}, ${lastPosition.lng.toFixed(5)} · accuracy ±${Math.round(pos.coords.accuracy)}m`;
-  const target=stops[current];
-  if(!target){$("status").textContent="Tour complete.";return}
-  const d=haversine(lastPosition,target);
-  $("distance").textContent=`${formatDistance(d)} away · GPS accuracy ±${Math.round(pos.coords.accuracy)}m`;
-  $("status").textContent="GPS tracking is active.";
-  if(d<=85 && !arrived){
-    arrived=true;
-    $("status").textContent=`Arrived at ${target.name}. Starting the guide…`;
-    guideFor(target);
-    if(navigator.vibrate) navigator.vibrate([180,80,180]);
+function speakCurrent(){
+  speak(current<stops.length?stops[current].guide:"You have completed the route.");
+}
+function showGuide(s){
+  $("guideTitle").textContent=s.name;
+  $("guideText").textContent=s.guide;
+  speak(s.guide);
+}
+function arrive(){
+  if(current>=stops.length || lastArrived===current)return;
+  lastArrived=current;
+  const s=stops[current];
+  showGuide(s);
+  current++;
+  render();
+  setTimeout(()=>lastArrived=-1,10000);
+}
+function handlePosition(pos){
+  const here={lat:pos.coords.latitude,lon:pos.coords.longitude};
+  if(current>=stops.length)return;
+  const s=stops[current], metres=distance(here,s);
+  const accuracy=Math.round(pos.coords.accuracy||0);
+  $("distance").textContent=`${Math.round(metres)}m from ${s.name} · accuracy ${accuracy}m`;
+  if(metres<=85 && accuracy<=150){
+    arrive();
+  } else if(gpsState==="running"){
+    setStatus("ok",`GPS active · ${Math.round(metres)}m from ${s.name}`);
   }
-  if(d>130) arrived=false;
+}
+function handleError(err){
+  if(err.code===1){
+    gpsState="blocked";
+    $("gpsBtn").textContent="📍 Location blocked";
+    setStatus("error","Location permission is blocked. Allow location for this site in your browser settings, then tap Retry GPS.");
+  }else if(err.code===2){
+    setStatus("error","Your device could not get a location. Check Location Services and try again.");
+  }else if(err.code===3){
+    setStatus("error","Location request timed out. Keep GPS/location services on and tap Retry GPS.");
+  }else{
+    setStatus("error","Could not get your location. Tap Retry GPS.");
+  }
 }
 function startGPS(){
   if(!navigator.geolocation){
-    $("status").textContent="This browser does not support GPS location.";
+    setStatus("error","This browser does not provide geolocation.");
     return;
   }
-  if(watchId!==null)return;
-  $("status").textContent="Requesting location permission…";
-  watchId=navigator.geolocation.watchPosition(onPosition,err=>{
-    $("status").textContent="GPS error: "+err.message;
-  },{enableHighAccuracy:true,maximumAge:5000,timeout:15000});
-  $("start").textContent="GPS running";
-  $("start").className="success";
+  if(watchId!==null)navigator.geolocation.clearWatch(watchId);
+  gpsState="starting";
+  $("gpsBtn").textContent="⏳ Starting GPS…";
+  setStatus("info","Requesting location permission…");
+  watchId=navigator.geolocation.watchPosition(handlePosition,handleError,{
+    enableHighAccuracy:true,maximumAge:5000,timeout:15000
+  });
 }
-function openMaps(){
-  const target=stops[current];
-  if(!target)return;
-  const url=`https://www.google.com/maps/dir/?api=1&destination=${target.lat},${target.lng}&travelmode=walking`;
-  window.open(url,"_blank","noopener");
+function more(){
+  const s=stops[Math.max(0,current-1)];
+  $("guideText").textContent=s.more;
+  speak(s.more);
 }
-$("start").onclick=startGPS;
-$("speak").onclick=()=>guideFor(stops[current]);
-$("more").onclick=()=>guideFor(stops[current],true);
-$("question").onclick=()=>{
-  const q=prompt("What would you like to know about this place?");
-  if(q) $("guide").textContent=`You asked: "${q}"\\n\\nFor the live version, this button can be connected to an AI chat endpoint so the guide answers location-specific questions in real time.`;
-};
-$("maps").onclick=openMaps;
-document.querySelectorAll(".add").forEach(b=>b.onclick=()=>{
-  stops.splice(current+1,0,{name:b.dataset.name,lat:+b.dataset.lat,lng:+b.dataset.lng,
-    guide:`You’ve arrived at ${b.dataset.name}. This stop was added to your live itinerary.`});
-  render();
-});
+function askQuestion(){
+  $("question").value="";
+  $("answer").textContent="";
+  $("modal").classList.remove("hidden");
+  $("question").focus();
+}
+function closeModal(){$("modal").classList.add("hidden")}
+function answerQuestion(){
+  const q=$("question").value.trim();
+  if(!q)return;
+  const s=stops[Math.max(0,current-1)];
+  let answer;
+  const lower=q.toLowerCase();
+  if(lower.includes("food")||lower.includes("eat")||lower.includes("drink"))
+    answer=`Around ${s.name}, focus on the places directly around the landmark. Your planned optional food stop is TKO Tacos; for drinks, Plaça Reial is the better pause.`;
+  else if(lower.includes("important")||lower.includes("why"))
+    answer=s.more;
+  else
+    answer=`You're currently exploring ${s.name}. ${s.more} If you ask about history, architecture, food or what to look for next, I can give you a focused explanation.`;
+  $("answer").textContent=answer;
+  speak(answer);
+}
 render();
 </script>
 </body>
